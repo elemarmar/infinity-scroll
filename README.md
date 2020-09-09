@@ -155,6 +155,71 @@ function displayPhotos() {
 }
 ```
 
+## Infinite Scroll
+
+As we scroll down, before we reach the end, we want our function getPhotos to run
+
+We use the `scroll` event (when an element's scrollbar is being scrolled)
+
+
+
+Check to see if scrolling near bottom of page, then load more photos. We want the function to fire only once, when it is close to the end.
+
+Ways of implementing infinite scroll functionality:
+
+- `window.innerHeight`: the total height of the browser window
+- `window.scrollY`: Distance from top of page user has scrolled (it goes up as user scrolls down)
+- `document.body.offsetHeight`: height of everything in the body, including what is not within the view
+
+We use the `offsetHeight` to subtract the amount of px that we want to load the pics.
+
+```js
+window.addEventListener('scroll', () => {
+  if (document.innerHeight + window.scrollY >= document.body.offsetHeight - 1000) {
+    getPhotos();
+  }
+})
+```
+
+It fires the function several times at once. 
+
+We need to create a `ready` boolean that will only be true once the images have finished loading. There is `load` event (when an event has loaded)  
+
+```js
+// Check if all images were loaded
+function imageLoaded() {
+  imagesLoaded++;
+  if (imagesLoaded === totalImages) {
+    ready = true;
+  }
+}
+```
+
+imageLoaded is going to be called for each individual image, when the image is loaded -> we are going to increment imagesLoaded with every image loaded
+
+We create ready boolean:
+
+```js
+let ready = false;
+let imagesLoaded = 0;
+let totalImages = 0; // so that we know when it's done loading everything
+```
+
+
+
+```js
+// check when each is finished loading
+img.addEventListener('load', imageLoaded)
+```
+
+Now we only want to scroll event listener run offloaded is equal to true (and then set to false)
+
+
+
+
+
+Show the loader only for the first fetch -> we add the hidden attribute to the loader element once the images are loaded
+
 
 
 ----
