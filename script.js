@@ -42,7 +42,7 @@ const count = 30;
 const query = 'fox';
 const apiUrl = `https://api.unsplash.com/photos/random/?client_id=${apiKey}&count=${count}&query=${query}`;
 
-async function getPictures() {
+async function getPhotos() {
   try {
     const response = await fetch(apiUrl);
     photosArr = await response.json();
@@ -53,4 +53,17 @@ async function getPictures() {
   }
 }
 
-getPictures();
+window.addEventListener('scroll', () => {
+  console.log(window.innerHeight);
+  console.log(window.scrollY);
+  console.log(document.body.offsetHeight);
+
+  if (
+    window.innerHeight + window.scrollY >=
+    document.body.offsetHeight - 1000
+  ) {
+    getPhotos();
+    console.log('load more');
+  }
+});
+getPhotos();
