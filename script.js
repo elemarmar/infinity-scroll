@@ -9,6 +9,10 @@ let photosArr = [];
 let ready = false; // all pics loaded
 let imagesLoaded = 0;
 let totalImages = 0;
+// In phone first load is 5 pics, otherwise 15
+const initialCount = window.innerWidth > 500 ? 15 : 5;
+const regularCount = 30;
+let isFirstLoad = true;
 
 /*********
  * HELPERS
@@ -21,16 +25,14 @@ function setAttributes(element, attributes) {
   }
 }
 
-// Update API URL
-function updateCount() {}
-
 // Check if all images were loaded
 function imageLoaded() {
   imagesLoaded++;
-  console.log('image loaded');
+
   if (imagesLoaded === totalImages) {
+    isFirstLoad = false;
     ready = true;
-    console.log(ready);
+
     // Hide the Loader
     elements.loader.hidden = true;
   }
@@ -42,10 +44,18 @@ function imageLoaded() {
 
 const apiKey = 'VVm7jT9quhW1_3g6v5GXhxzj2IW28dysBnw_Rrh1HXk';
 
-async function getPhotos(count = 10, query = 'nature') {
+async function getPhotos(query = 'nature') {
+  let count;
+
+  if (isFirstLoad) {
+    count = initialCount;
+  } else {
+    count = regularCount;
+  }
+
   const apiUrl = `https://api.unsplash.com/photos/random/?client_id=${apiKey}&count=${count}&query=${query}`;
+
   try {
-    console.log('loading new');
     const response = await fetch(apiUrl);
     photosArr = await response.json();
     displayPhotos();
@@ -104,7 +114,7 @@ elements.queryInput.addEventListener('keypress', (ev) => {
     query = elements.queryInput.value;
     totalImages = 0;
     elements.imageContainer.innerHTML = '';
-    getPhotos(10, query);
+    getPhotos(query);
   }
 });
 

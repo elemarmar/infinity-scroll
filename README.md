@@ -4,9 +4,15 @@
 
 
 
-This app displays pictures from unsplash. It implements infinite scroll, which loads more pictures as the user scrolls down. The pictures are fetched from the [Unsplash API](https://unsplash.com/documentation).
+![cover-2](cover-2.png)
+
+This app displays random pictures from unsplash. It implements **infinite scroll**, which loads more pictures as the user scrolls down. The pictures are fetched from the [Unsplash API](https://unsplash.com/documentation). In the title there is a title where the user can write a query word to get pictures related to their query. In these examples we see the results for 'mountain' and 'fox'. By default, it loads pictures related to nature.
 
 It's also mobile responsive.
+
+
+
+<br />
 
 
 
@@ -14,9 +20,9 @@ It's also mobile responsive.
 
 The HTML will have three parts:
 
-1. title
+1. The title
 
-2. The loader that will have a hidden attribute by default
+2. The loader that will have a `hidden` attribute when the pictures are loaded.
 
    ```html
    <div class="loader" id="loader" hidden>
@@ -24,72 +30,91 @@ The HTML will have three parts:
    </div>
    ```
 
-3. The pictures
+3. The picture container where new `<img>` will be created. 
 
    ```html
    <div class="image-container" id="image-container">
      <img src="sourceUrl" alt="description">
+     // ...
    </div>
    ```
 
    
 
+<br />
 
+
+
+---
+
+
+
+<br />
 
 ## Building a responsive Layout
 
-A container for the image.
-
-```css
-.image-container {
-  margin: 10px 30%;
-}
-
-.image-container img {
-	margin-top: 5px;
-  width: 100%;
-}
-```
-
-- Using media queries to make it look good on mobile
-
-- Adjust the title
-- Adjust the image-container
-
-Later: grid (many)
+1. Creating a container for the images 
+2. Using media queries to make it look good on mobile
+3. Using [columns](https://developer.mozilla.org/en-US/docs/Web/CSS/columns) property to display multiple pictures in different columns.
 
 
+
+
+
+<br />
+
+
+
+---
+
+
+
+</br>
 
 
 
 ## Fetching data
 
-Using Unsplash API 
+👉🏻 Using  [Unsplash API](https://unsplash.com/documentation)
 
+**Location:** `https://api.unsplash.com/photos/?client_id=YOUR_ACCESS_KEY` 👉🏻 we need API KEY that we pass as a query when requesting. I'll also be making use of the `query` parameter to allow users filter images by topic.
 
+<br />
 
-Location `https://api.unsplash.com/photos/?client_id=YOUR_ACCESS_KEY` we need API KEY that we pass as a query when requesting.
-
-Random photos related with foxes and count of 30 which is the max, instead of getting only one pic.
+**Count:** In order to increase performance, the first fetch will only get 5 images for mobile devices and 15 for other screens (in order to make the column display look good). Whenever the first pack of pictures have been loaded, the count will then be the max of 30.
 
 ```js
 // Unsplash API
-const count = 30;
-const apiKey= '';
-const query = 'fox';
-const apiUrl = `https://api.unsplash.com/photos/random/?client_id=${apiKey}&count=${count}&query=${query}`;
+// In phone first load is 5 pics, otherwise 15
+const initialCount = window.innerWidth > 500 ? 15 : 5;
+const regularCount = 30;
+let isFirstLoad = true;
 ```
 
 
 
-Async function to get fotos
+<br />
+
+**Async function `getPhotos()`**
 
 ```js
-async function getPhotos() {
+// Using default parameters so that if the user doesn't write anything in the input, nature pics are displayed
+async function getPhotos(query = 'nature') {
+  let count; 
+
+  // If it's first time load, count will be initialCount (5 / 15), otherwise regularCount (30)
+  if (isFirstLoad) {
+    count = initialCount;
+  } else {
+    count = regularCount;
+  }
+
+  const apiUrl = `https://api.unsplash.com/photos/random/?client_id=${apiKey}&count=${count}&query=${query}`;
+
   try {
     const response = await fetch(apiUrl);
-    const data = await reponse.json();
-    console.log(data);
+    photosArr = await response.json(); // we save info in global array photosArr
+    displayPhotos();
   } catch (error) {
     console.log(error);
   }
@@ -98,16 +123,21 @@ async function getPhotos() {
 
 
 
-- Main color!
-- urls.regular for image
+<br />
 
-Photo.alt_description
+
+
+---
+
+
+
+<br />
+
+
 
 ## Displaying the photos
 
-WE save the information into a global array, then forEach we create the html elements for each element. 
-
-Because we are setting many attributes, we create a helper function 
+We save the information into a global array, then with  `forEach` we create the html elements for each element. Because we are setting many attributes, we create a helper function to take care of this task:
 
 ```js
 // Helper Function to Set Attributes on DOM Elements
@@ -118,7 +148,11 @@ function setAttributes(element, attributes) {
 }
 ```
 
-Attributes is an object
+⚠️ `photosArr` is indeed a **nodeList** and not an array, but `forEach` is now also supported for array-like structures.
+
+
+
+<br />
 
 
 
@@ -131,39 +165,54 @@ const elements = {
 let photosArr = [];
 
 function displayPhotos() {
-  photosArr.forEach(photo => {
-    
+  // Reset number of images loaded
+  imagesLoaded = 0;
+  // Update Total Nº of Images
+  totalImages = photosArr.length;
+  
+  photosArr.forEach((photo) => {
     // Create <a> that links to Unsplash
     const item = document.createElement('a');
     setAttributes(item, {
       href: photo.links.html,
-      target: '_blank'
-    })
-    
+      target: '_blank',
+    });
+
     // Create <img> for photo
     const img = document.createElement('img');
     setAttributes(img, {
       src: photo.urls.regular,
-      alt: photo.alt_description,
-      title: photo.alt_description
-    })
-    
-    // Put <img> inside <a> and place them inside imageContainer Element
+      alt: photo.alt_description || 'unknown', // avoid "null" when no description
+      title: photo.alt_description || 'unknown',
+    });
+
+    // Put <img> inside of <a> and place them inside imageContainer
     item.appendChild(img);
     elements.imageContainer.appendChild(item);
-  })
+
+    // Image was loaded
+    imageLoaded(); // This is for the next step: checking if each image was loaded so that we can implament infinite scrolling
+  });
 }
 ```
 
+
+
+<br />
+
+---
+
+<br />
+
+
+
 ## Infinite Scroll
 
-As we scroll down, before we reach the end, we want our function getPhotos to run
+As we scroll down, before we reach the end, we want our function `getPhotos` to run. For this purpose, we can use the `scroll` event (when an element's scrollbar is being scrolled) ([ref](https://developer.mozilla.org/en-US/docs/Web/API/Element/scroll_event))
 
-We use the `scroll` event (when an element's scrollbar is being scrolled)
+<br />
 
-
-
-Check to see if scrolling near bottom of page, then load more photos. We want the function to fire only once, when it is close to the end.
+We need to check if the scrolling is near bottom of page and then load more photos ⚠️ but only run the `getPhotos` function once. 
 
 Ways of implementing infinite scroll functionality:
 
@@ -181,31 +230,26 @@ window.addEventListener('scroll', () => {
 })
 ```
 
-It fires the function several times at once. 
+⚠️ BUT this fires the function several times at once. 
 
-We need to create a `ready` boolean that will only be true once the images have finished loading. There is `load` event (when an event has loaded)  
+<br />
+
+We need to create a `ready` boolean that will only be true once the images have finished loading and only then the other statement must be evaluated. For this purpose, we'll use the  `load` event ([ref](https://developer.mozilla.org/en-US/docs/Web/API/SVGElement/load_event))
 
 ```js
 // Check if all images were loaded
 function imageLoaded() {
   imagesLoaded++;
+
   if (imagesLoaded === totalImages) {
+    isFirstLoad = false; // this will later update our photos count
     ready = true;
+
+    // Hide the Loader
+    elements.loader.hidden = true;
   }
 }
 ```
-
-imageLoaded is going to be called for each individual image, when the image is loaded -> we are going to increment imagesLoaded with every image loaded
-
-We create ready boolean:
-
-```js
-let ready = false;
-let imagesLoaded = 0;
-let totalImages = 0; // so that we know when it's done loading everything
-```
-
-
 
 ```js
 // check when each is finished loading
@@ -216,20 +260,7 @@ Now we only want to scroll event listener run offloaded is equal to true (and th
 
 
 
-
-
-Show the loader only for the first fetch -> we add the hidden attribute to the loader element once the images are loaded
-
-
-
-Taking care of performance:
-
-We make count 5 first time for slow internet connection but once the first load, we set count again to 30
-
-
-
-- [ ] Fix Readme
-- [ ] Apply effects to images (blur, color based on the pic's color?)
+<br />
 
 ----
 

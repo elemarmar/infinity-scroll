@@ -23,6 +23,7 @@ h1,
   margin-bottom: 15px;
   font-size: 40px;
   letter-spacing: 5px;
+  font-family: 'Kufam', cursive;
 }
 
 .query {
@@ -125,7 +126,7 @@ h1,
   }
 
   .subtitle {
-    font-size: 14px;
+    font-size: 12px;
   }
 
   .image-container {
