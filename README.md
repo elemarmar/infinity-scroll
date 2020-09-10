@@ -1,6 +1,6 @@
 # Infinity Scroll
 
-%PIC%
+![cover](cover.png)
 
 
 
@@ -221,6 +221,15 @@ Now we only want to scroll event listener run offloaded is equal to true (and th
 Show the loader only for the first fetch -> we add the hidden attribute to the loader element once the images are loaded
 
 
+
+Taking care of performance:
+
+We make count 5 first time for slow internet connection but once the first load, we set count again to 30
+
+
+
+- [ ] Fix Readme
+- [ ] Apply effects to images (blur, color based on the pic's color?)
 
 ----
 
